@@ -66,7 +66,6 @@ module.exports = function cgi(cgiBin, options) {
     cgiResult.pipe(res);
 
     cgiSpawn.on('exit', function(code, signal) {
-      console.log('exit');
       cgiResult.cleanup();
     });
   }
