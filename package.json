@@ -1,0 +1,11 @@
+{
+  "name": "cgi",
+  "description": "A stack/connect layer to invoke and serve CGI executables.",
+  "version": "0.0.1",
+  "repository": "git://github.com/TooTallNate/node-cgi.git",
+  "author": "Nathan Rajlich <nathan@tootallnate.net> (http://tootallnate.net)",
+  "main": "./cgi",
+  "engines": {
+    "node": "0.4.0"
+  }
+}
