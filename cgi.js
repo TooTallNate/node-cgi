@@ -108,10 +108,10 @@ CGIParser.prototype._parseHeader = function(chunk) {
   if (index < 0) {
     // Otherwise try "\r\n\r\n"
     index = buf.bufferIndexOf(this._headers, DOUBLE_CRLF);
-    hederLen = DOUBLE_CRLF.length;
+    headerLen = DOUBLE_CRLF.length;
   }
   if (index >= 0) {
-    var leftover = this._headers.slice(index + hederLen);
+    var leftover = this._headers.slice(index + headerLen);
     this._headers = this._headers.slice(0, index);
     this._onHeadersComplete(leftover);
   }
