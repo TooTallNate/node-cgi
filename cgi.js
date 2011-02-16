@@ -78,7 +78,10 @@ module.exports = function cgi(cgiBin, options) {
  * is assumed to be the body, which you can use 'pipe()' with.
  */
 var LF = '\n';
-var END_OF_HEADER = new Buffer(LF + LF);
+var CR = '\r';
+var DOUBLE_LF = new Buffer(LF+LF);
+var DOUBLE_CRLF = new Buffer(CR+LF+CR+LF);
+var CRLF = new RegExp(CR + LF, 'g');
 
 function CGIParser(stream) {
   StreamStack.call(this, stream, {
@@ -100,22 +103,25 @@ CGIParser.prototype._onData = function(chunk) {
 
 CGIParser.prototype._parseHeader = function(chunk) {
   this._headers = buf.bufferConcat(this._headers, chunk);
-  var index = buf.bufferIndexOf(this._headers, END_OF_HEADER);
+  // First try "\n\n"
+  var index = buf.bufferIndexOf(this._headers, DOUBLE_LF);
+  var headerLen = DOUBLE_LF.length;
+  if (index < 0) {
+    // Otherwise try "\r\n\r\n"
+    index = buf.bufferIndexOf(this._headers, DOUBLE_CRLF);
+    hederLen = DOUBLE_CRLF.length;
+  }
   if (index >= 0) {
-    var leftover = this._headers.slice(index + END_OF_HEADER.length);
+    var leftover = this._headers.slice(index + hederLen);
     this._headers = this._headers.slice(0, index);
     this._onHeadersComplete(leftover);
   }
 }
 
 CGIParser.prototype._onHeadersComplete = function(leftover) {
-  //console.log(this._headers);
-  //console.log(this._headers.toString());
-  //console.log(leftover);
-  //console.log(leftover.toString());
   var headers = {};
 
-  this._headers.toString().split(LF).forEach(function(line) {
+  this._headers.toString().replace(CRLF, LF).split(LF).forEach(function(line) {
     var firstColon = line.indexOf(':');
     var name = line.substring(0, firstColon);
     var value = line.substring(firstColon+(line[firstColon+1] == ' ' ? 2 : 1));
