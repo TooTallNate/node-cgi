@@ -7,21 +7,11 @@ var SERVER_SOFTWARE = "Node/"+process.version;
 var SERVER_PROTOCOL = "HTTP/1.1";
 var GATEWAY_INTERFACE = "CGI/1.1";
 
-// The default config options to use for each `cgi()` call.
-cgi.DEFAULTS = {
-  // The 'cgi' handler will take effect when the req.url begins with "mountPoint"
-  mountPoint: '/',
-  // Any additional variables to insert into the CGI script's Environment
-  env: {},
-  // Set to 'true' if the CGI script is an NPH script
-  nph: false
-};
-
-module.exports = function cgi(cgiBin, options) {
+function cgi(cgiBin, options) {
   options = options || {};
   options.__proto__ = cgi.DEFAULTS;
 
-  return function cgi(req, res, next) {
+  return function layer(req, res, next) {
     if (!req.hasOwnProperty("uri")) { req.uri = url.parse(req.url); }
     if (req.uri.pathname.substring(0, options.mountPoint.length) !== options.mountPoint) return next();
 
@@ -34,17 +24,30 @@ module.exports = function cgi(cgiBin, options) {
       if (!port) address = serverAddress.port;
     }
 
-    var env = clone(options.env);
+    var env = {};
+
+    // Take environment variables from the current server process
+    extend(process.env, env);
+
     // These meta-variables below can be overwritten by a
     // user's 'env' object in options
-    env.__proto__ = {
+    extend({
       GATEWAY_INTERFACE:  GATEWAY_INTERFACE,
-      SERVER_NAME:        address,
-      SERVER_PORT:        port,
+      SERVER_NAME:        address || '',
+      SERVER_PORT:        port || '',
       SERVER_PROTOCOL:    SERVER_PROTOCOL,
       SERVER_SOFTWARE:    SERVER_SOFTWARE
-    };
-    env.__proto__.__proto__ = process.env;
+    }, env);
+
+    // The client HTTP request headers are attached to the env as well,
+    // in the format: "User-Agent" -> "HTTP_USER_AGENT"
+    for (var header in req.headers) {
+      var name = 'HTTP_' + header.toUpperCase().replace(/-/g, '_');
+      env[name] = req.headers[header];
+    }
+
+    // Now add the user-specified env variables
+    extend(options.env, env);
 
     // These final environment variables take precedence over user-specified ones.
     env.REQUEST_METHOD = req.method;
@@ -61,8 +64,9 @@ module.exports = function cgi(cgiBin, options) {
       //var unbase = new Buffer(auth[1], 'base64').toString().split(':');
     }
 
+    //console.log(env);
     // Now we can spawn the CGI executable
-    var cgiSpawn = spawn(cgiBin, [], { env: env });
+    var cgiSpawn = spawn(cgiBin, [], { 'env': env });
 
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
@@ -76,16 +80,30 @@ module.exports = function cgi(cgiBin, options) {
     cgiResult.on('headers', function(headers) {
       var status = parseInt(headers.Status) || 200;
       res.writeHead(status, headers);
+
+      // The response body is piped to the response body of the HTTP request
+      cgiResult.pipe(res);
     });
 
-    // The response body is piped to the response body of the HTTP request
-    cgiResult.pipe(res);
 
     cgiSpawn.on('exit', function(code, signal) {
+      //console.log(arguments);
       cgiResult.cleanup();
     });
   }
 }
+module.exports = cgi;
+
+// The default config options to use for each `cgi()` call.
+cgi.DEFAULTS = {
+  // The 'cgi' handler will take effect when the req.url begins with "mountPoint"
+  mountPoint: '/',
+  // Any additional variables to insert into the CGI script's Environment
+  env: {},
+  // Set to 'true' if the CGI script is an NPH script
+  nph: false
+};
+
 
 /**
  * Parses CGI headers (\n newlines) until a blank line,
@@ -154,10 +172,9 @@ CGIParser.prototype._onHeadersComplete = function(leftover) {
 
 
 // Does a shallow clone of an Object
-function clone(obj) {
-  var rtn = {};
-  for (var i in obj) {
-    rtn[i] = obj[i];
+function extend(source, destination) {
+  for (var i in source) {
+    destination[i] = source[i];
   }
-  return rtn;
+  return destination;
 }
