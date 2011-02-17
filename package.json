@@ -5,7 +5,10 @@
   "repository": "git://github.com/TooTallNate/node-cgi.git",
   "author": "Nathan Rajlich <nathan@tootallnate.net> (http://tootallnate.net)",
   "main": "./cgi",
+  "dependencies": {
+    "stream-stack": "*"
+  },
   "engines": {
-    "node": "0.4.0"
+    "node": ">= 0.4.0"
   }
 }
