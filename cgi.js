@@ -33,6 +33,8 @@ function cgi(cgiBin, options) {
     // user's 'env' object in options
     extend({
       GATEWAY_INTERFACE:  GATEWAY_INTERFACE,
+      SCRIPT_NAME:        options.mountPoint,
+      PATH_INFO:          req.uri.pathname.substring(options.mountPoint.length),
       SERVER_NAME:        address || '',
       SERVER_PORT:        port || '',
       SERVER_PROTOCOL:    SERVER_PROTOCOL,
@@ -65,30 +67,44 @@ function cgi(cgiBin, options) {
     }
 
     //console.log(env);
+    //var fds = [ req.connection.fd, -1, -1 ];
+    //if (options.nph) {
+    //  fds[1] = fds[0];
+    //}
     // Now we can spawn the CGI executable
-    var cgiSpawn = spawn(cgiBin, [], { 'env': env });
+    var cgiSpawn = spawn(cgiBin, [], {
+      //'customFds': fds,
+      'env': env
+    });
 
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
 
     // A proper CGI script is supposed to print headers to 'stdout'
     // followed by a blank line, then a response body.
-    var cgiResult = new CGIParser(cgiSpawn.stdout);
+    if (!options.nph) {
+      var cgiResult = new CGIParser(cgiSpawn.stdout);
 
-    // When the blank line after the headers has been parsed, then
-    // the 'headers' event is emitted with an Object containing the headers.
-    cgiResult.on('headers', function(headers) {
-      var status = parseInt(headers.Status) || 200;
-      res.writeHead(status, headers);
+      // When the blank line after the headers has been parsed, then
+      // the 'headers' event is emitted with an Object containing the headers.
+      cgiResult.on('headers', function(headers) {
+        var status = parseInt(headers.Status) || 200;
+        res.writeHead(status, headers);
 
-      // The response body is piped to the response body of the HTTP request
-      cgiResult.pipe(res);
-    });
+        // The response body is piped to the response body of the HTTP request
+        cgiResult.pipe(res);
+      });
+    } else {
+      // If it's an NPH script, then responsibility of the HTTP response is
+      // completely passed off to the child process.
+      //req.connection.destroy();
+      cgiSpawn.stdout.pipe(res.connection);
+    }
 
 
     cgiSpawn.on('exit', function(code, signal) {
       //console.log(arguments);
-      cgiResult.cleanup();
+      //cgiResult.cleanup();
     });
   }
 }
