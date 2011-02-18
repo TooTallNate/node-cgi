@@ -18,7 +18,7 @@ function cgi(cgiBin, options) {
     var host = (req.headers.host || '').split(':');
     var address = host[0];
     var port = host[1];
-    if (!address || !port) {
+    if (!address || !port && typeof this.address == 'function') {
       var serverAddress = this.address();
       if (!address) address = serverAddress.address;
       if (!port) port = serverAddress.port;
@@ -35,8 +35,8 @@ function cgi(cgiBin, options) {
       GATEWAY_INTERFACE:  GATEWAY_INTERFACE,
       SCRIPT_NAME:        options.mountPoint,
       PATH_INFO:          req.uri.pathname.substring(options.mountPoint.length),
-      SERVER_NAME:        address || '',
-      SERVER_PORT:        port || '',
+      SERVER_NAME:        address || 'unknown',
+      SERVER_PORT:        port || 80,
       SERVER_PROTOCOL:    SERVER_PROTOCOL,
       SERVER_SOFTWARE:    SERVER_SOFTWARE
     }, env);
@@ -80,6 +80,11 @@ function cgi(cgiBin, options) {
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
 
+    // If `options.stderr` is set to a Stream instance, then pipe into it
+    if (options.stderr) {
+      cgiSpawn.stderr.pipe(options.stderr);
+    }
+
     // A proper CGI script is supposed to print headers to 'stdout'
     // followed by a blank line, then a response body.
     if (!options.nph) {
@@ -117,7 +122,9 @@ cgi.DEFAULTS = {
   // Any additional variables to insert into the CGI script's Environment
   env: {},
   // Set to 'true' if the CGI script is an NPH script
-  nph: false
+  nph: false,
+  // Set to a `Stream` instance if you want to log stderr of the CGI script somewhere
+  stderr: undefined
 };
 
 
@@ -187,7 +194,7 @@ CGIParser.prototype._onHeadersComplete = function(leftover) {
 }
 
 
-// Does a shallow clone of an Object
+// Copies the values from source onto destination
 function extend(source, destination) {
   for (var i in source) {
     destination[i] = source[i];
