@@ -12,6 +12,12 @@ function cgi(cgiBin, options) {
   options.__proto__ = cgi.DEFAULTS;
 
   return function layer(req, res, next) {
+    if (!next) {
+      next = function() {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not Found\n");
+      }
+    }
     if (!req.hasOwnProperty("uri")) { req.uri = url.parse(req.url); }
     if (req.uri.pathname.substring(0, options.mountPoint.length) !== options.mountPoint) return next();
 
@@ -77,6 +83,13 @@ function cgi(cgiBin, options) {
       'env': env
     });
 
+
+    // Work-around some weird Node bug where a child process won't emit
+    // any events... or something... still figuring it out.
+    // This SHOULDN'T be needed.
+    require('util').inspect(cgiSpawn, true, 5);
+
+    
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
 
