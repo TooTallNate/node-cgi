@@ -1,6 +1,6 @@
 node-cgi
 ========
-### A stack/connect layer to invoke and serve CGI executables.
+### An http/stack/connect layer to invoke and serve CGI executables.
 
 
 This module implements [RFC 3875][rfc3875], and offers an easy interface to run
