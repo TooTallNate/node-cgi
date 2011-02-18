@@ -21,7 +21,7 @@ function cgi(cgiBin, options) {
     if (!address || !port) {
       var serverAddress = this.address();
       if (!address) address = serverAddress.address;
-      if (!port) address = serverAddress.port;
+      if (!port) port = serverAddress.port;
     }
 
     var env = {};
