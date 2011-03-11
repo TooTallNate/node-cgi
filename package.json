@@ -1,7 +1,7 @@
 {
   "name": "cgi",
   "description": "A stack/connect layer to invoke and serve CGI executables.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "repository": {
     "type": "git",
     "url": "git://github.com/TooTallNate/node-cgi.git"
