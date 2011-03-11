@@ -95,10 +95,12 @@ function cgi(cgiBin, options) {
 
     // If `options.stderr` is set to a Stream instance, then re-emit the
     // 'data' events onto the stream.
+    var onData;
     if (options.stderr) {
-      cgiSpawn.stderr.on('data', function onData(chunk) {
+      onData = function (chunk) {
         options.stderr.emit('data', chunk);
-      });
+      }
+      cgiSpawn.stderr.on('data', onData);
     }
 
     // A proper CGI script is supposed to print headers to 'stdout'
