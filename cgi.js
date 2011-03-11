@@ -129,7 +129,6 @@ function cgi(cgiBin, options) {
       //console.log(arguments);
       //cgiResult.cleanup();
       if (onData) {
-        console.error("removing 'data' listener");
         options.stderr.removeListener('data', onData);
       }
     });
