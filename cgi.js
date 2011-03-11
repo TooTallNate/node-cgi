@@ -93,9 +93,12 @@ function cgi(cgiBin, options) {
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
 
-    // If `options.stderr` is set to a Stream instance, then pipe into it
+    // If `options.stderr` is set to a Stream instance, then re-emit the
+    // 'data' events onto the stream.
     if (options.stderr) {
-      cgiSpawn.stderr.pipe(options.stderr);
+      cgiSpawn.stderr.on('data', function onData(chunk) {
+        options.stderr.emit('data', chunk);
+      });
     }
 
     // A proper CGI script is supposed to print headers to 'stdout'
@@ -123,6 +126,10 @@ function cgi(cgiBin, options) {
     cgiSpawn.on('exit', function(code, signal) {
       //console.log(arguments);
       //cgiResult.cleanup();
+      if (onData) {
+        console.error("removing 'data' listener");
+        options.stderr.removeListener('data', onData);
+      }
     });
   }
 }
