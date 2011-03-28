@@ -9,7 +9,7 @@ var options = {
   cert: fs.readFileSync(__dirname + '/ssl.crt')
 }
 
-var hander = cgi(__dirname + '/cgi-bin/nph-proxy.cgi', {
+var handler = cgi(__dirname + '/cgi-bin/nph-proxy.cgi', {
   nph: true,
   env: {
     //RUNNING_ON_SSL_SERVER: 1
