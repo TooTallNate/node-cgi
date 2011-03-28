@@ -97,8 +97,9 @@ function cgi(cgiBin, options) {
 
     // A proper CGI script is supposed to print headers to 'stdout'
     // followed by a blank line, then a response body.
+    var cgiResult;
     if (!options.nph) {
-      var cgiResult = new CGIParser(cgiSpawn.stdout);
+      cgiResult = new CGIParser(cgiSpawn.stdout);
 
       // When the blank line after the headers has been parsed, then
       // the 'headers' event is emitted with a Headers instance.
@@ -123,7 +124,9 @@ function cgi(cgiBin, options) {
 
 
     cgiSpawn.on('exit', function(code, signal) {
-      cgiResult.cleanup();
+      if (cgiResult) {
+        cgiResult.cleanup();
+      }
       if (onData) {
         options.stderr.removeListener('data', onData);
       }
