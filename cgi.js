@@ -1,7 +1,8 @@
 var url = require('url');
 var spawn = require('child_process').spawn;
+var Stream = require('stream').Stream;
 var StreamStack = require('stream-stack').StreamStack;
-var buf = require('./bufferHelpers');
+var HeaderParser = require('header-stack').Parser;
 
 var SERVER_SOFTWARE = "Node/"+process.version;
 var SERVER_PROTOCOL = "HTTP/1.1";
@@ -111,7 +112,8 @@ function cgi(cgiBin, options) {
       // When the blank line after the headers has been parsed, then
       // the 'headers' event is emitted with an Object containing the headers.
       cgiResult.on('headers', function(headers) {
-        var status = parseInt(headers.Status) || 200;
+        console.log(headers);
+        var status = parseInt(headers.status) || 200;
         res.writeHead(status, headers);
 
         // The response body is piped to the response body of the HTTP request
@@ -154,63 +156,35 @@ cgi.DEFAULTS = {
  * signifying the end of the headers. After the blank line
  * is assumed to be the body, which you can use 'pipe()' with.
  */
-var LF = '\n';
-var CR = '\r';
-var DOUBLE_LF = new Buffer(LF+LF);
-var DOUBLE_CRLF = new Buffer(CR+LF+CR+LF);
-var CRLF = new RegExp(CR + LF, 'g');
-
 function CGIParser(stream) {
   StreamStack.call(this, stream, {
-    data: this._onData
+    data: function(b) { this._onData(b); }
   });
-  this.headersParsed = false;
-  this._headers = Buffer(0);
+  this._onData = this._parseHeader;
+  this._headerParser = new HeaderParser(new Stream(), {
+    emitFirstLine: false,
+    strictCRLF: false,
+    strictSpaceAfterColon: false,
+    allowFoldedHeaders: false
+  });
+  this._headerParser.on('headers', this._onHeadersComplete.bind(this));
 }
 require('util').inherits(CGIParser, StreamStack);
 exports.CGIParser = CGIParser;
 
-CGIParser.prototype._onData = function(chunk) {
-  if (this.headersParsed) {
-    this.emit('data', chunk);
-  } else {
-    this._parseHeader(chunk);
-  }
+CGIParser.prototype._proxyData = function(b) {
+  this.emit('data', b);
 }
 
 CGIParser.prototype._parseHeader = function(chunk) {
-  this._headers = buf.bufferConcat(this._headers, chunk);
-  // First try "\n\n"
-  var index = buf.bufferIndexOf(this._headers, DOUBLE_LF);
-  var headerLen = DOUBLE_LF.length;
-  if (index < 0) {
-    // Otherwise try "\r\n\r\n"
-    index = buf.bufferIndexOf(this._headers, DOUBLE_CRLF);
-    headerLen = DOUBLE_CRLF.length;
-  }
-  if (index >= 0) {
-    var leftover = this._headers.slice(index + headerLen);
-    this._headers = this._headers.slice(0, index);
-    this._onHeadersComplete(leftover);
-  }
+  this._headerParser.stream.emit('data', chunk);
 }
 
-CGIParser.prototype._onHeadersComplete = function(leftover) {
-  var headers = {};
-
-  this._headers.toString().replace(CRLF, LF).split(LF).forEach(function(line) {
-    var firstColon = line.indexOf(':');
-    var name = line.substring(0, firstColon);
-    var value = line.substring(firstColon+(line[firstColon+1] == ' ' ? 2 : 1));
-    headers[name] = value;
-  });
-
-  this.headersParsed = true;
-
+CGIParser.prototype._onHeadersComplete = function(headers, leftover) {
+  this._onData = this._proxyData;
   this.emit('headers', headers);
-
   if (leftover) {
-    this.stream.emit('data', leftover);
+    this._onData(leftover);
   }
 }
 

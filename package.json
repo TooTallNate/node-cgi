@@ -9,7 +9,8 @@
   "author": "Nathan Rajlich <nathan@tootallnate.net> (http://tootallnate.net)",
   "main": "./cgi",
   "dependencies": {
-    "stream-stack": "*"
+    "stream-stack": "*",
+    "header-stack": "0.0.2"
   },
   "engines": {
     "node": ">= 0.4.0"
