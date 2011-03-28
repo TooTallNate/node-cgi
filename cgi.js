@@ -90,7 +90,7 @@ function cgi(cgiBin, options) {
     var onData;
     if (options.stderr) {
       onData = function (chunk) {
-        options.stderr.emit('data', chunk);
+        options.stderr.write(chunk);
       }
       cgiSpawn.stderr.on('data', onData);
     }
@@ -123,8 +123,7 @@ function cgi(cgiBin, options) {
 
 
     cgiSpawn.on('exit', function(code, signal) {
-      //console.log(arguments);
-      //cgiResult.cleanup();
+      cgiResult.cleanup();
       if (onData) {
         options.stderr.removeListener('data', onData);
       }
