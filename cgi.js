@@ -1,8 +1,6 @@
 var url = require('url');
 var spawn = require('child_process').spawn;
-var Stream = require('stream').Stream;
-var StreamStack = require('stream-stack').StreamStack;
-var HeaderParser = require('header-stack').Parser;
+var CGIParser = require('./parser');
 
 var SERVER_SOFTWARE = "Node/"+process.version;
 var SERVER_PROTOCOL = "HTTP/1.1";
@@ -155,44 +153,7 @@ cgi.DEFAULTS = {
 };
 
 
-/**
- * Parses CGI headers (\n newlines) until a blank line,
- * signifying the end of the headers. After the blank line
- * is assumed to be the body, which you can use 'pipe()' with.
- */
-function CGIParser(stream) {
-  StreamStack.call(this, stream, {
-    data: function(b) { this._onData(b); }
-  });
-  this._onData = this._parseHeader;
-  this._headerParser = new HeaderParser(new Stream(), {
-    emitFirstLine: false,
-    strictCRLF: false,
-    strictSpaceAfterColon: false,
-    allowFoldedHeaders: false
-  });
-  this._headerParser.on('headers', this._onHeadersComplete.bind(this));
-}
-require('util').inherits(CGIParser, StreamStack);
-exports.CGIParser = CGIParser;
-
-CGIParser.prototype._proxyData = function(b) {
-  this.emit('data', b);
-}
-
-CGIParser.prototype._parseHeader = function(chunk) {
-  this._headerParser.stream.emit('data', chunk);
-}
-
-CGIParser.prototype._onHeadersComplete = function(headers, leftover) {
-  this._onData = this._proxyData;
-  this.emit('headers', headers);
-  if (leftover) {
-    this._onData(leftover);
-  }
-}
-
-
+// TODO: Remove this function, and use the prototype of the env instead
 // Copies the values from source onto destination
 function extend(source, destination) {
   for (var i in source) {
