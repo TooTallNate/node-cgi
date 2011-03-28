@@ -110,11 +110,15 @@ function cgi(cgiBin, options) {
       var cgiResult = new CGIParser(cgiSpawn.stdout);
 
       // When the blank line after the headers has been parsed, then
-      // the 'headers' event is emitted with an Object containing the headers.
+      // the 'headers' event is emitted with a Headers instance.
       cgiResult.on('headers', function(headers) {
-        console.log(headers);
-        var status = parseInt(headers.status) || 200;
-        res.writeHead(status, headers);
+        headers.forEach(function(header) {
+          // Don't set the 'Status' header. It's special, and should be
+          // used to set the HTTP response code below.
+          if (header.key === 'Status') return;
+          res.setHeader(header.key, header.value);
+        });
+        res.writeHead(parseInt(headers.status) || 200);
 
         // The response body is piped to the response body of the HTTP request
         cgiResult.pipe(res);
