@@ -23,7 +23,7 @@ function cgi(cgiBin, options) {
     var host = (req.headers.host || '').split(':');
     var address = host[0];
     var port = host[1];
-    if (!address || !port && typeof this.address == 'function') {
+    if ((!address || !port) && typeof(this.address) === 'function') {
       var serverAddress = this.address();
       if (!address) address = serverAddress.address;
       if (!port) port = serverAddress.port;
@@ -81,13 +81,6 @@ function cgi(cgiBin, options) {
       //'customFds': fds,
       'env': env
     });
-
-
-    // Work-around some weird Node bug where a child process won't emit
-    // any events... or something... still figuring it out.
-    // This SHOULDN'T be needed.
-    require('util').inspect(cgiSpawn, true, 5);
-
     
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
@@ -116,7 +109,7 @@ function cgi(cgiBin, options) {
           if (header.key === 'Status') return;
           res.setHeader(header.key, header.value);
         });
-        res.writeHead(parseInt(headers.status) || 200);
+        res.writeHead(parseInt(headers.status) || 200, {});
 
         // The response body is piped to the response body of the HTTP request
         cgiResult.pipe(res);

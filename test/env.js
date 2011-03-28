@@ -10,7 +10,7 @@ var server = http.createServer(
   )
 );
 server.listen(PORT, function() {
-/*  console.log('server listening');
+  console.log('server listening');
 
   var client = http.createClient(PORT);
   var req = client.request('GET', '/?test=1');
@@ -19,5 +19,5 @@ server.listen(PORT, function() {
     res.pipe(process.stdout, {end:false});
     res.on('end', client.end.bind(client));
   });
-  req.end();*/
+  req.end();
 });
