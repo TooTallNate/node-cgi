@@ -20,8 +20,8 @@ Here's what a simple "Hello World" CGI script in `sh` would look like:
 ``` bash
 #!/bin/sh
 
-# Headers are written first. The special "Status" headers
-# indicates the response status code
+# Headers are written first. The special "Status"
+# header indicates the response status code
 echo "Status: 200"
 echo "Content-Type: text/plain"
 echo
