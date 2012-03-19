@@ -11,7 +11,7 @@ directly serve [GitWeb][node-gitweb] through Node.
 CGI Scripts?
 ------------
 
-If you're not familiar with CGI scripts, they're simply executables files that
+If you're not familiar with CGI scripts, they're simply executable files that
 get invoked by a web server with client requests. The script has Environment
 Variables set that indicate information about the HTTP request the client has sent.
 
