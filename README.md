@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/TooTallNate/node-cgi.png)](http://travis-ci.org/TooTallNate/node-cgi)
 node-cgi
 ========
 ### An http/stack/connect layer to invoke and serve CGI executables.
