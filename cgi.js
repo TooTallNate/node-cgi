@@ -123,7 +123,7 @@ function cgi(cgiBin, options) {
     }
 
 
-    cgiSpawn.on('exit', function(code, signal) {
+    cgiSpawn.on('close', function(code, signal) {
       if (cgiResult) {
         cgiResult.cleanup();
       }
