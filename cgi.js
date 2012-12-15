@@ -1,6 +1,21 @@
+
+/**
+ * Module dependencies.
+ */
+
 var url = require('url');
 var spawn = require('child_process').spawn;
 var CGIParser = require('./parser');
+
+/**
+ * Module exports.
+ */
+
+module.exports = cgi;
+
+/**
+ * Constants.
+ */
 
 var SERVER_SOFTWARE = 'Node/' + process.version;
 var SERVER_PROTOCOL = 'HTTP/1.1';
@@ -73,13 +88,8 @@ function cgi(cgiBin, options) {
     }
 
     //console.log(env);
-    //var fds = [ req.connection.fd, -1, -1 ];
-    //if (options.nph) {
-    //  fds[1] = fds[0];
-    //}
     // Now we can spawn the CGI executable
     var cgiSpawn = spawn(cgiBin, [], {
-      //'customFds': fds,
       env: env
     });
     
@@ -111,7 +121,9 @@ function cgi(cgiBin, options) {
           if (header.key === 'Status') return;
           res.setHeader(header.key, header.value);
         });
-        res.writeHead(parseInt(headers.status, 10) || 200, {});
+
+        // set the response status code
+        res.statusCode = parseInt(headers.status, 10) || 200;
 
         // The response body is piped to the response body of the HTTP request
         cgiResult.pipe(res);
@@ -119,7 +131,6 @@ function cgi(cgiBin, options) {
     } else {
       // If it's an NPH script, then responsibility of the HTTP response is
       // completely passed off to the child process.
-      //req.connection.destroy();
       cgiSpawn.stdout.pipe(res.connection);
     }
 
@@ -138,7 +149,6 @@ function cgi(cgiBin, options) {
     });
   };
 }
-module.exports = cgi;
 
 // The default config options to use for each `cgi()` call.
 cgi.DEFAULTS = {
@@ -149,7 +159,7 @@ cgi.DEFAULTS = {
   // Set to 'true' if the CGI script is an NPH script
   nph: false,
   // Set to a `Stream` instance if you want to log stderr of the CGI script somewhere
-  stderr: undefined
+  stderr: null
 };
 
 
