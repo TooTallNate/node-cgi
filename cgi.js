@@ -123,8 +123,12 @@ function cgi(cgiBin, options) {
       cgiSpawn.stdout.pipe(res.connection);
     }
 
+    cgiSpawn.on('exit', function(code, signal) {
+      // TODO: react on a failure status code (dump stderr to the response?)
+    });
 
-    cgiSpawn.on('close', function(code, signal) {
+    cgiSpawn.stdout.on('end', function () {
+      // clean up event listeners upon the "end" event
       if (cgiResult) {
         cgiResult.cleanup();
       }
