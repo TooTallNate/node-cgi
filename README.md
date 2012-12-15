@@ -41,12 +41,13 @@ our `hello.cgi` script will be invoked, and the response will be sent back to th
 HTTP client:
 
 ``` javascript
-var http = require('http');
 var cgi = require('cgi');
+var http = require('http');
+var path = require('path');
 
-http.createServer(
-  cgi('hello.cgi')
-).listen(80);
+var script = path.resolve(__dirname, 'hello.cgi');
+
+http.createServer( cgi(script) ).listen(80);
 ```
 
 This will set up a CGI handler with the default options.
