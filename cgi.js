@@ -4,6 +4,7 @@
  */
 
 var url = require('url');
+var debug = require('debug')('cgi');
 var spawn = require('child_process').spawn;
 var CGIParser = require('./parser');
 
@@ -29,17 +30,20 @@ function cgi(cgiBin, options) {
     if (!next) {
       // define a default "next" handler if none was passed
       next = function(err) {
+        debug('"next" called:', err);
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("Not Found\n");
       };
     }
     if (!req.hasOwnProperty("uri")) { req.uri = url.parse(req.url); }
     if (req.uri.pathname.substring(0, options.mountPoint.length) !== options.mountPoint) return next();
+    debug('handling HTTP request: %j', req.url);
 
     var host = (req.headers.host || '').split(':');
     var address = host[0];
     var port = host[1];
-    if ((!address || !port) && typeof(this.address) === 'function') {
+    if ((!address || !port) && typeof this.address == 'function') {
+      debug('determining server address and port via address()');
       var serverAddress = this.address();
       if (!address) address = serverAddress.address;
       if (!port) port = serverAddress.port;
@@ -87,12 +91,11 @@ function cgi(cgiBin, options) {
       //var unbase = new Buffer(auth[1], 'base64').toString().split(':');
     }
 
-    //console.log(env);
     // Now we can spawn the CGI executable
-    var cgiSpawn = spawn(cgiBin, [], {
-      env: env
-    });
-    
+    debug('env: %j', env);
+    var cgiSpawn = spawn(cgiBin, [], { env: env });
+    debug('cgi spawn (pid: %d)', cgiSpawn.pid);
+
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
 
@@ -135,11 +138,13 @@ function cgi(cgiBin, options) {
     }
 
     cgiSpawn.on('exit', function(code, signal) {
+      debug('cgi spawn %d "exit" event (code %s) (signal %s)', cgiSpawn.pid, code, signal);
       // TODO: react on a failure status code (dump stderr to the response?)
     });
 
     cgiSpawn.stdout.on('end', function () {
       // clean up event listeners upon the "end" event
+      debug('cgi spawn %d stdout "end" event', cgiSpawn.pid);
       if (cgiResult) {
         cgiResult.cleanup();
       }

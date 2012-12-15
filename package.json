@@ -10,7 +10,8 @@
   "main": "./cgi",
   "dependencies": {
     "stream-stack": ">= 1.1.1",
-    "header-stack": ">= 0.0.2"
+    "header-stack": ">= 0.0.2",
+    "debug": ">= 0.7.0"
   },
   "engines": {
     "node": ">= 0.4.0"
