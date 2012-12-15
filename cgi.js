@@ -2,9 +2,9 @@ var url = require('url');
 var spawn = require('child_process').spawn;
 var CGIParser = require('./parser');
 
-var SERVER_SOFTWARE = "Node/"+process.version;
-var SERVER_PROTOCOL = "HTTP/1.1";
-var GATEWAY_INTERFACE = "CGI/1.1";
+var SERVER_SOFTWARE = 'Node/' + process.version;
+var SERVER_PROTOCOL = 'HTTP/1.1';
+var GATEWAY_INTERFACE = 'CGI/1.1';
 
 function cgi(cgiBin, options) {
   options = options || {};
@@ -12,10 +12,11 @@ function cgi(cgiBin, options) {
 
   return function layer(req, res, next) {
     if (!next) {
-      next = function() {
+      // define a default "next" handler if none was passed
+      next = function(err) {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("Not Found\n");
-      }
+      };
     }
     if (!req.hasOwnProperty("uri")) { req.uri = url.parse(req.url); }
     if (req.uri.pathname.substring(0, options.mountPoint.length) !== options.mountPoint) return next();
@@ -79,7 +80,7 @@ function cgi(cgiBin, options) {
     // Now we can spawn the CGI executable
     var cgiSpawn = spawn(cgiBin, [], {
       //'customFds': fds,
-      'env': env
+      env: env
     });
     
     // The request body is piped to 'stdin' of the CGI spawn
@@ -91,7 +92,7 @@ function cgi(cgiBin, options) {
     if (options.stderr) {
       onData = function (chunk) {
         options.stderr.write(chunk);
-      }
+      };
       cgiSpawn.stderr.on('data', onData);
     }
 
@@ -110,7 +111,7 @@ function cgi(cgiBin, options) {
           if (header.key === 'Status') return;
           res.setHeader(header.key, header.value);
         });
-        res.writeHead(parseInt(headers.status) || 200, {});
+        res.writeHead(parseInt(headers.status, 10) || 200, {});
 
         // The response body is piped to the response body of the HTTP request
         cgiResult.pipe(res);
@@ -131,7 +132,7 @@ function cgi(cgiBin, options) {
         options.stderr.removeListener('data', onData);
       }
     });
-  }
+  };
 }
 module.exports = cgi;
 
