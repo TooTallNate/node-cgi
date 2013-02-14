@@ -93,7 +93,7 @@ function cgi(cgiBin, options) {
 
     // Now we can spawn the CGI executable
     debug('env: %j', env);
-    var cgiSpawn = spawn(cgiBin, [], { env: env });
+    var cgiSpawn = spawn(cgiBin, options.args, { env: env });
     debug('cgi spawn (pid: %d)', cgiSpawn.pid);
 
     // The request body is piped to 'stdin' of the CGI spawn
@@ -164,7 +164,9 @@ cgi.DEFAULTS = {
   // Set to 'true' if the CGI script is an NPH script
   nph: false,
   // Set to a `Stream` instance if you want to log stderr of the CGI script somewhere
-  stderr: null
+  stderr: null,
+  // A list of arguments for the cgi bin to be used by spawn
+  args: []
 };
 
 
