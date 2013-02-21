@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -130,6 +129,11 @@ function cgi(cgiBin, options) {
 
         // The response body is piped to the response body of the HTTP request
         cgiResult.pipe(res);
+        
+        // make sure the response stream ends when process exit
+        cgiSpawn.stdout.on('close', function(){
+          res.end();
+        });
       });
     } else {
       // If it's an NPH script, then responsibility of the HTTP response is
