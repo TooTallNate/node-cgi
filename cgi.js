@@ -93,7 +93,9 @@ function cgi(cgiBin, options) {
 
     // Now we can spawn the CGI executable
     debug('env: %j', env);
-    var cgiSpawn = spawn(cgiBin, options.args, { env: env });
+    var envDoc = {env: env};
+    if (options.cwd !== undefined) envDoc.cwd = options.cwd;
+    var cgiSpawn = spawn(cgiBin, options.args, envDoc);
     debug('cgi spawn (pid: %d)', cgiSpawn.pid);
 
     // The request body is piped to 'stdin' of the CGI spawn
@@ -157,6 +159,8 @@ function cgi(cgiBin, options) {
 
 // The default config options to use for each `cgi()` call.
 cgi.DEFAULTS = {
+  // The 'cgi' process working directory. If undefined current path is used
+  cwd: undefined,
   // The 'cgi' handler will take effect when the req.url begins with "mountPoint"
   mountPoint: '/',
   // Any additional variables to insert into the CGI script's Environment
