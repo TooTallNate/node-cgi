@@ -79,6 +79,8 @@ function cgi(cgiBin, options) {
     // These final environment variables take precedence over user-specified ones.
     env.REQUEST_METHOD = req.method;
     env.QUERY_STRING = req.uri.query || '';
+    env.REMOTE_ADDR = req.connection.remoteAddress;
+    env.REMOTE_PORT = req.connection.remotePort;
     if ('content-length' in req.headers) {
       env.CONTENT_LENGTH = req.headers['content-length'];
     }
