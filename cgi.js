@@ -59,7 +59,7 @@ function cgi(cgiBin, options) {
     extend({
       GATEWAY_INTERFACE:  GATEWAY_INTERFACE,
       SCRIPT_NAME:        options.mountPoint,
-      PATH_INFO:          req.uri.pathname.substring(options.mountPoint.length),
+      PATH_INFO:          '/' + req.uri.pathname.substring(options.mountPoint.length),
       SERVER_NAME:        address || 'unknown',
       SERVER_PORT:        port || 80,
       SERVER_PROTOCOL:    SERVER_PROTOCOL,
