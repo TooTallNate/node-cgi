@@ -7,6 +7,7 @@
     "url": "git://github.com/TooTallNate/node-cgi.git"
   },
   "author": "Nathan Rajlich <nathan@tootallnate.net> (http://tootallnate.net)",
+  "license": "MIT",
   "main": "./cgi",
   "dependencies": {
     "debug": "~0.8.1",
