@@ -12,8 +12,5 @@
     "debug": "~0.8.1",
     "header-stack": "~0.0.2",
     "stream-stack": "~1.1.1"
-  },
-  "engines": {
-    "node": ">= 0.4.0"
   }
 }
