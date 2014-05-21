@@ -54,12 +54,16 @@ function cgi(cgiBin, options) {
     // Take environment variables from the current server process
     extend(process.env, env);
 
+    // Determine the correct path
+    path = req.uri.pathname.substring(options.mountPoint.length)
+    if(!path.match(/^\//)) path = '/' + path
+
     // These meta-variables below can be overwritten by a
     // user's 'env' object in options
     extend({
       GATEWAY_INTERFACE:  GATEWAY_INTERFACE,
       SCRIPT_NAME:        options.mountPoint,
-      PATH_INFO:          '/' + req.uri.pathname.substring(options.mountPoint.length),
+      PATH_INFO:          path,
       SERVER_NAME:        address || 'unknown',
       SERVER_PORT:        port || 80,
       SERVER_PROTOCOL:    SERVER_PROTOCOL,
