@@ -1,6 +1,6 @@
 {
   "name": "cgi",
-  "description": "A stack/connect layer to invoke and serve CGI executables.",
+  "description": "A stack/connect layer to invoke and serve CGI executables",
   "version": "0.2.0",
   "repository": {
     "type": "git",
