@@ -54,12 +54,19 @@ function cgi(cgiBin, options) {
     // Take environment variables from the current server process
     extend(process.env, env);
 
+    // Determine the correct PATH_INFO variable.
+    // It must be prepended with a "/" char as per:
+    //   https://tools.ietf.org/html/rfc3875#section-4.1.5
+    var pathInfo = req.uri.pathname.substring(options.mountPoint.length);
+    if ('/' !== pathInfo[0]) pathInfo = '/' + pathInfo;
+    debug('calculated PATH_INFO variable: %s', pathInfo);
+
     // These meta-variables below can be overwritten by a
     // user's 'env' object in options
     extend({
       GATEWAY_INTERFACE:  GATEWAY_INTERFACE,
       SCRIPT_NAME:        options.mountPoint,
-      PATH_INFO:          req.uri.pathname.substring(options.mountPoint.length),
+      PATH_INFO:          pathInfo,
       SERVER_NAME:        address || 'unknown',
       SERVER_PORT:        port || 80,
       SERVER_PROTOCOL:    SERVER_PROTOCOL,
