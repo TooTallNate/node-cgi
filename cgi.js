@@ -4,6 +4,7 @@
  */
 
 var url = require('url');
+var extend = require('extend');
 var debug = require('debug')('cgi');
 var spawn = require('child_process').spawn;
 var CGIParser = require('./parser');
@@ -23,8 +24,7 @@ var SERVER_PROTOCOL = 'HTTP/1.1';
 var GATEWAY_INTERFACE = 'CGI/1.1';
 
 function cgi(cgiBin, options) {
-  options = options || {};
-  options.__proto__ = cgi.DEFAULTS;
+  options = extend({}, cgi.DEFAULTS, options);
 
   return function layer(req, res, next) {
     if (!next) {
@@ -49,10 +49,8 @@ function cgi(cgiBin, options) {
       if (!port) port = serverAddress.port;
     }
 
-    var env = {};
-
     // Take environment variables from the current server process
-    extend(process.env, env);
+    var env = extend({}, process.env);
 
     // Determine the correct PATH_INFO variable.
     // It must be prepended with a "/" char as per:
@@ -63,7 +61,7 @@ function cgi(cgiBin, options) {
 
     // These meta-variables below can be overwritten by a
     // user's 'env' object in options
-    extend({
+    extend(env, {
       GATEWAY_INTERFACE:  GATEWAY_INTERFACE,
       SCRIPT_NAME:        options.mountPoint,
       PATH_INFO:          pathInfo,
@@ -71,7 +69,7 @@ function cgi(cgiBin, options) {
       SERVER_PORT:        port || 80,
       SERVER_PROTOCOL:    SERVER_PROTOCOL,
       SERVER_SOFTWARE:    SERVER_SOFTWARE
-    }, env);
+    });
 
     // The client HTTP request headers are attached to the env as well,
     // in the format: "User-Agent" -> "HTTP_USER_AGENT"
@@ -81,7 +79,7 @@ function cgi(cgiBin, options) {
     }
 
     // Now add the user-specified env variables
-    extend(options.env, env);
+    if (options.env) extend(env, options.env);
 
     // These final environment variables take precedence over user-specified ones.
     env.REQUEST_METHOD = req.method;
@@ -181,13 +179,3 @@ cgi.DEFAULTS = {
   // A list of arguments for the cgi bin to be used by spawn
   args: []
 };
-
-
-// TODO: Remove this function, and use the prototype of the env instead
-// Copies the values from source onto destination
-function extend(source, destination) {
-  for (var i in source) {
-    destination[i] = source[i];
-  }
-  return destination;
-}
