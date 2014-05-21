@@ -102,6 +102,8 @@ function cgi(cgiBin, options) {
     debug('env: %j', env);
     var envDoc = {env: env};
     if (options.cwd !== undefined) envDoc.cwd = options.cwd;
+    if (options.uid !== undefined) envDoc.uid = options.uid;
+    if (options.gid !== undefined) envDoc.gid = options.gid;
     var cgiSpawn = spawn(cgiBin, options.args, envDoc);
     debug('cgi spawn (pid: %d)', cgiSpawn.pid);
 
