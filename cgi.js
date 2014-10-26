@@ -156,6 +156,11 @@ function cgi(cgiBin, options) {
       debug('cgi spawn %d stdout "end" event', cgiSpawn.pid);
       if (cgiResult) {
         cgiResult.cleanup();
+        if (!res.headersSent) {
+          res.writeHead(500, { 'Content-type': 'text/plain' });
+          res.write('Internal Server Error');
+          res.end();
+        }
       }
       if (onData) {
         options.stderr.removeListener('data', onData);
