@@ -105,6 +105,14 @@ function cgi(cgiBin, options) {
     var cgiSpawn = spawn(cgiBin, options.args, options);
     debug('cgi spawn (pid: %d)', cgiSpawn.pid);
 
+    var exited = false;
+
+    if (options.timeout) {
+      setTimeout(function() {
+        if (!exited) cgiSpawn.kill();
+      }, options.timeout * 1000);
+    }
+
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
 
@@ -148,6 +156,7 @@ function cgi(cgiBin, options) {
 
     cgiSpawn.on('exit', function(code, signal) {
       debug('cgi spawn %d "exit" event (code %s) (signal %s)', cgiSpawn.pid, code, signal);
+      exited = true;
       // TODO: react on a failure status code (dump stderr to the response?)
     });
 
