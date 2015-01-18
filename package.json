@@ -10,7 +10,7 @@
   "license": "MIT",
   "main": "./cgi",
   "dependencies": {
-    "debug": "~0.8.1",
+    "debug": "2",
     "extend": "~1.2.1",
     "header-stack": "~0.0.2",
     "stream-stack": "~1.1.1"
