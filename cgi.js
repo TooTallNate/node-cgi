@@ -30,21 +30,21 @@ function cgi(cgiBin, options) {
     if (!next) {
       // define a default "next" handler if none was passed
       next = function(err) {
-        debug('"next" called:', err);
+        debug('"next" called: %o', err);
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("Not Found\n");
       };
     }
     if (!req.hasOwnProperty("uri")) { req.uri = url.parse(req.url); }
     if (req.uri.pathname.substring(0, options.mountPoint.length) !== options.mountPoint) return next();
-    debug('handling HTTP request: %j', req.url);
+    debug('handling HTTP request: %o', req.url);
 
     var host = (req.headers.host || '').split(':');
     var address = host[0];
     var port = host[1];
     if ((!address || !port) && typeof this.address == 'function') {
-      debug('determining server address and port via address()');
       var serverAddress = this.address();
+      debug('server address and port: %o', serverAddress);
       if (!address) address = serverAddress.address;
       if (!port) port = serverAddress.port;
     }
@@ -57,7 +57,7 @@ function cgi(cgiBin, options) {
     //   https://tools.ietf.org/html/rfc3875#section-4.1.5
     var pathInfo = req.uri.pathname.substring(options.mountPoint.length);
     if ('/' !== pathInfo[0]) pathInfo = '/' + pathInfo;
-    debug('calculated PATH_INFO variable: %s', pathInfo);
+    debug('calculated PATH_INFO variable: %o', pathInfo);
 
     // These meta-variables below can be overwritten by a
     // user's 'env' object in options
@@ -99,11 +99,11 @@ function cgi(cgiBin, options) {
     }
 
     // Now we can spawn the CGI executable
-    debug('env: %j', env);
+    debug('env: %o', env);
     options.env = env;
 
     var cgiSpawn = spawn(cgiBin, options.args, options);
-    debug('cgi spawn (pid: %d)', cgiSpawn.pid);
+    debug('cgi spawn (pid: %o)', cgiSpawn.pid);
 
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
@@ -147,13 +147,13 @@ function cgi(cgiBin, options) {
     }
 
     cgiSpawn.on('exit', function(code, signal) {
-      debug('cgi spawn %d "exit" event (code %s) (signal %s)', cgiSpawn.pid, code, signal);
+      debug('cgi spawn %o "exit" event (code %o) (signal %o)', cgiSpawn.pid, code, signal);
       // TODO: react on a failure status code (dump stderr to the response?)
     });
 
     cgiSpawn.stdout.on('end', function () {
       // clean up event listeners upon the "end" event
-      debug('cgi spawn %d stdout "end" event', cgiSpawn.pid);
+      debug('cgi spawn %o stdout "end" event', cgiSpawn.pid);
       if (cgiResult) {
         cgiResult.cleanup();
       }
