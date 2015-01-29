@@ -110,12 +110,8 @@ function cgi(cgiBin, options) {
 
     // If `options.stderr` is set to a Stream instance, then re-emit the
     // 'data' events onto the stream.
-    var onData;
     if (options.stderr) {
-      onData = function (chunk) {
-        options.stderr.write(chunk);
-      };
-      cgiSpawn.stderr.on('data', onData);
+      cgiSpawn.stderr.pipe(options.stderr);
     }
 
     // A proper CGI script is supposed to print headers to 'stdout'
@@ -157,9 +153,9 @@ function cgi(cgiBin, options) {
       if (cgiResult) {
         cgiResult.cleanup();
       }
-      if (onData) {
-        options.stderr.removeListener('data', onData);
-      }
+      //if (options.stderr) {
+      //  cgiSpawn.stderr.unpipe(options.stderr);
+      //}
     });
   };
 }
