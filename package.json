@@ -8,7 +8,7 @@
   },
   "author": "Nathan Rajlich <nathan@tootallnate.net> (http://tootallnate.net)",
   "license": "MIT",
-  "main": "./cgi",
+  "main": "./cgi.js",
   "dependencies": {
     "debug": "2",
     "extend": "~1.2.1",
