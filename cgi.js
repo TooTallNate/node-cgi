@@ -98,11 +98,13 @@ function cgi(cgiBin, options) {
       //var unbase = new Buffer(auth[1], 'base64').toString().split(':');
     }
 
+    var opts = extend({}, options);
+
     // Now we can spawn the CGI executable
     debug('env: %o', env);
-    options.env = env;
+    opts.env = env;
 
-    var cgiSpawn = spawn(cgiBin, options.args, options);
+    var cgiSpawn = spawn(cgiBin, opts.args, opts);
     debug('cgi spawn (pid: %o)', cgiSpawn.pid);
 
     // The request body is piped to 'stdin' of the CGI spawn
