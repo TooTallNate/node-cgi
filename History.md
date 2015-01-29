@@ -1,4 +1,14 @@
 
+0.3.1 / 2015-01-29
+==================
+
+  * cgi: ensure that the spawn opts don't trump the cgi options object
+  * cgi: use .pipe() for stderr
+  * cgi: use `%o` formatter for debug() calls
+  * package: update "extend" to v2.0.0
+  * package: use ".js" in "main" field
+  * package: allow any "debug" v2
+
 0.3.0 / 2014-05-22
 ==================
 
