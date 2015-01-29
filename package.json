@@ -11,7 +11,7 @@
   "main": "./cgi.js",
   "dependencies": {
     "debug": "2",
-    "extend": "~1.2.1",
+    "extend": "~2.0.0",
     "header-stack": "~0.0.2",
     "stream-stack": "~1.1.1"
   },
