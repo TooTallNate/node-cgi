@@ -144,6 +144,10 @@ function cgi(cgiBin, options) {
       cgiSpawn.stdout.pipe(res.connection);
     }
 
+    cgiSpawn.on('error', function(err) {
+      return next(err);
+    });
+
     cgiSpawn.on('exit', function(code, signal) {
       debug('cgi spawn %o "exit" event (code %o) (signal %o)', cgiSpawn.pid, code, signal);
       // TODO: react on a failure status code (dump stderr to the response?)
