@@ -144,6 +144,10 @@ function cgi(cgiBin, options) {
       cgiSpawn.stdout.pipe(res.connection);
     }
 
+    cgiSpawn.on('error', function(err) {
+      return next(err);
+    });
+
     cgiSpawn.on('exit', function(code, signal) {
       debug('cgi spawn %o "exit" event (code %o) (signal %o)', cgiSpawn.pid, code, signal);
       // TODO: react on a failure status code (dump stderr to the response?)
@@ -154,6 +158,11 @@ function cgi(cgiBin, options) {
       debug('cgi spawn %o stdout "end" event', cgiSpawn.pid);
       if (cgiResult) {
         cgiResult.cleanup();
+        if (!res.headersSent) {
+          res.writeHead(500, { 'Content-type': 'text/plain' });
+          res.write('Internal Server Error');
+          res.end();
+        }
       }
       //if (options.stderr) {
       //  cgiSpawn.stderr.unpipe(options.stderr);
