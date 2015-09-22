@@ -1,17 +1,17 @@
 {
   "name": "cgi",
   "description": "A stack/connect layer to invoke and serve CGI executables",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/TooTallNate/node-cgi.git"
   },
   "author": "Nathan Rajlich <nathan@tootallnate.net> (http://tootallnate.net)",
   "license": "MIT",
-  "main": "./cgi",
+  "main": "./cgi.js",
   "dependencies": {
-    "debug": "~0.8.1",
-    "extend": "~1.2.1",
+    "debug": "2",
+    "extend": "~2.0.0",
     "header-stack": "~0.0.2",
     "stream-stack": "~1.1.1"
   },

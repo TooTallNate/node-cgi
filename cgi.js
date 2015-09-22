@@ -30,21 +30,21 @@ function cgi(cgiBin, options) {
     if (!next) {
       // define a default "next" handler if none was passed
       next = function(err) {
-        debug('"next" called:', err);
+        debug('"next" called: %o', err);
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("Not Found\n");
       };
     }
     if (!req.hasOwnProperty("uri")) { req.uri = url.parse(req.url); }
     if (req.uri.pathname.substring(0, options.mountPoint.length) !== options.mountPoint) return next();
-    debug('handling HTTP request: %j', req.url);
+    debug('handling HTTP request: %o', req.url);
 
     var host = (req.headers.host || '').split(':');
     var address = host[0];
     var port = host[1];
     if ((!address || !port) && typeof this.address == 'function') {
-      debug('determining server address and port via address()');
       var serverAddress = this.address();
+      debug('server address and port: %o', serverAddress);
       if (!address) address = serverAddress.address;
       if (!port) port = serverAddress.port;
     }
@@ -57,7 +57,7 @@ function cgi(cgiBin, options) {
     //   https://tools.ietf.org/html/rfc3875#section-4.1.5
     var pathInfo = req.uri.pathname.substring(options.mountPoint.length);
     if ('/' !== pathInfo[0]) pathInfo = '/' + pathInfo;
-    debug('calculated PATH_INFO variable: %s', pathInfo);
+    debug('calculated PATH_INFO variable: %o', pathInfo);
 
     // These meta-variables below can be overwritten by a
     // user's 'env' object in options
@@ -98,12 +98,14 @@ function cgi(cgiBin, options) {
       //var unbase = new Buffer(auth[1], 'base64').toString().split(':');
     }
 
-    // Now we can spawn the CGI executable
-    debug('env: %j', env);
-    options.env = env;
+    var opts = extend({}, options);
 
-    var cgiSpawn = spawn(cgiBin, options.args, options);
-    debug('cgi spawn (pid: %d)', cgiSpawn.pid);
+    // Now we can spawn the CGI executable
+    debug('env: %o', env);
+    opts.env = env;
+
+    var cgiSpawn = spawn(cgiBin, opts.args, opts);
+    debug('cgi spawn (pid: %o)', cgiSpawn.pid);
 
     var exited = false;
 
@@ -118,12 +120,8 @@ function cgi(cgiBin, options) {
 
     // If `options.stderr` is set to a Stream instance, then re-emit the
     // 'data' events onto the stream.
-    var onData;
     if (options.stderr) {
-      onData = function (chunk) {
-        options.stderr.write(chunk);
-      };
-      cgiSpawn.stderr.on('data', onData);
+      cgiSpawn.stderr.pipe(options.stderr);
     }
 
     // A proper CGI script is supposed to print headers to 'stdout'
@@ -155,14 +153,14 @@ function cgi(cgiBin, options) {
     }
 
     cgiSpawn.on('exit', function(code, signal) {
-      debug('cgi spawn %d "exit" event (code %s) (signal %s)', cgiSpawn.pid, code, signal);
+      debug('cgi spawn %o "exit" event (code %o) (signal %o)', cgiSpawn.pid, code, signal);
       exited = true;
       // TODO: react on a failure status code (dump stderr to the response?)
     });
 
     cgiSpawn.stdout.on('end', function () {
       // clean up event listeners upon the "end" event
-      debug('cgi spawn %d stdout "end" event', cgiSpawn.pid);
+      debug('cgi spawn %o stdout "end" event', cgiSpawn.pid);
       if (cgiResult) {
         cgiResult.cleanup();
         if (!res.headersSent) {
@@ -171,9 +169,9 @@ function cgi(cgiBin, options) {
           res.end();
         }
       }
-      if (onData) {
-        options.stderr.removeListener('data', onData);
-      }
+      //if (options.stderr) {
+      //  cgiSpawn.stderr.unpipe(options.stderr);
+      //}
     });
   };
 }
