@@ -107,6 +107,14 @@ function cgi(cgiBin, options) {
     var cgiSpawn = spawn(cgiBin, opts.args, opts);
     debug('cgi spawn (pid: %o)', cgiSpawn.pid);
 
+    var exited = false;
+
+    if (options.timeout) {
+      setTimeout(function() {
+        if (!exited) cgiSpawn.kill();
+      }, options.timeout * 1000);
+    }
+
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
 
@@ -146,6 +154,7 @@ function cgi(cgiBin, options) {
 
     cgiSpawn.on('exit', function(code, signal) {
       debug('cgi spawn %o "exit" event (code %o) (signal %o)', cgiSpawn.pid, code, signal);
+      exited = true;
       // TODO: react on a failure status code (dump stderr to the response?)
     });
 
@@ -154,6 +163,11 @@ function cgi(cgiBin, options) {
       debug('cgi spawn %o stdout "end" event', cgiSpawn.pid);
       if (cgiResult) {
         cgiResult.cleanup();
+        if (!res.headersSent) {
+          res.writeHead(500, { 'Content-type': 'text/plain' });
+          res.write('Internal Server Error');
+          res.end();
+        }
       }
       //if (options.stderr) {
       //  cgiSpawn.stderr.unpipe(options.stderr);
