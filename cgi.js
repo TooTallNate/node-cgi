@@ -107,6 +107,10 @@ function cgi(cgiBin, options) {
     var cgiSpawn = spawn(cgiBin, opts.args, opts);
     debug('cgi spawn (pid: %o)', cgiSpawn.pid);
 
+    if (options.killOnDisconnect) {
+      req.on('close', function() { cgiSpawn.kill(); });  
+    }
+
     // The request body is piped to 'stdin' of the CGI spawn
     req.pipe(cgiSpawn.stdin);
 
@@ -170,6 +174,8 @@ cgi.DEFAULTS = {
   env: {},
   // Set to 'true' if the CGI script is an NPH script
   nph: false,
+  // kill the cgi script if the request abort
+  killOnDisconnect: false,
   // Set to a `Stream` instance if you want to log stderr of the CGI script somewhere
   stderr: null,
   // A list of arguments for the cgi bin to be used by spawn
