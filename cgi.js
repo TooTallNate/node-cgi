@@ -122,9 +122,24 @@ function cgi(cgiBin, options) {
     if (!options.nph) {
       cgiResult = new CGIParser(cgiSpawn.stdout);
 
+      // When the parser encounters an error parsing the headers, then
+      // the 'error' event is emitted with an Error instance.
+      var headersHaveError = false;
+      cgiResult.on('error', function(err){
+        headersHaveError = true;
+        if (options.stderr) {
+          options.stderr.write(err.toString());
+        } else {
+          throw(err);
+        }
+      });
+
       // When the blank line after the headers has been parsed, then
       // the 'headers' event is emitted with a Headers instance.
       cgiResult.on('headers', function(headers) {
+        // Prevent sending anything if there was an error parsing the headers
+        if (headersHaveError) return;
+
         headers.forEach(function(header) {
           // Don't set the 'Status' header. It's special, and should be
           // used to set the HTTP response code below.
