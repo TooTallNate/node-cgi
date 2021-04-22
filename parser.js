@@ -19,6 +19,7 @@ function Parser(stream) {
     allowFoldedHeaders: false
   });
   this._headerParser.on('headers', this._onHeadersComplete.bind(this));
+  this._headerParser.on('error', this._onHeadersError.bind(this));
 }
 require('util').inherits(Parser, StreamStack);
 module.exports = Parser;
@@ -37,4 +38,8 @@ Parser.prototype._onHeadersComplete = function(headers, leftover) {
   if (leftover) {
     this._onData(leftover);
   }
+}
+
+Parser.prototype._onHeadersError = function(err) {
+  this.emit('error', err);
 }
